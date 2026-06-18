@@ -17,7 +17,6 @@ from mcp.server.fastmcp import FastMCP
 import shopify_mcp as _shopify
 import kas_mcp as _kas
 import kitlv_mcp as _kitlv
-import discovery_mcp as _discovery
 
 PORT = int(os.environ.get("PORT", 8000))
 
@@ -99,18 +98,6 @@ def kitlv_get_news(query: str = "") -> str:
     """Geeft recent nieuws van KITLV. Optioneel gefilterd op trefwoord."""
     return _kitlv.get_news(query)
 
-
-# --- Discovery tools ---
-
-@mcp.tool()
-def discover(url: str) -> str:
-    """Controleer of een website een MCP-server heeft via de meta-tag. Geeft de server-URL en beschikbare tools terug."""
-    return _discovery.discover(url)
-
-@mcp.tool()
-def discover_and_query(url: str, question: str) -> str:
-    """Stel een vraag over een website. Gebruikt automatisch de MCP-server als die beschikbaar is, anders leest hij de pagina direct."""
-    return _discovery.discover_and_query(url, question)
 
 
 if __name__ == "__main__":
