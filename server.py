@@ -1,60 +1,104 @@
 #!/usr/bin/env python3
 """
 Gecombineerde MCP HTTP-server voor Railway deployment.
-Elke site heeft een eigen endpoint:
-  /shopify/mcp  → Shopify winkel tools
-  /kas/mcp      → Restaurant de Kas tools
-  /kitlv/mcp    → KITLV tools
+Alle tools van de drie sites in één server op /mcp.
 
-Start lokaal met: python server.py
-Railway gebruikt de PORT omgevingsvariabele automatisch.
+Toolnamen zijn geprefixed om ze te onderscheiden:
+  shopify_*   → Shopify winkel
+  kas_*        → Restaurant de Kas
+  kitlv_*      → KITLV
 """
 
 import os
-import shopify_mcp
-import kas_mcp
-import kitlv_mcp
+import uvicorn
+from mcp.server.fastmcp import FastMCP
+
+# Importeer de data-functies direct (niet de mcp-instanties)
+import shopify_mcp as _shopify
+import kas_mcp as _kas
+import kitlv_mcp as _kitlv
 
 PORT = int(os.environ.get("PORT", 8000))
-HOST = "0.0.0.0"
 
-# Haal de Starlette ASGI-apps op uit elke MCP-server
-shopify_asgi = shopify_mcp.mcp.streamable_http_app()
-kas_asgi = kas_mcp.mcp.streamable_http_app()
-kitlv_asgi = kitlv_mcp.mcp.streamable_http_app()
-
-from starlette.applications import Starlette
-from starlette.routing import Mount
-from starlette.responses import JSONResponse
-from starlette.requests import Request
+mcp = FastMCP("ai-site-layer", host="0.0.0.0", port=PORT)
 
 
-async def index(request: Request) -> JSONResponse:
-    return JSONResponse({
-        "service": "AI-readable site layer",
-        "endpoints": {
-            "/shopify/mcp": "Shopify winkel — producten, voorraad, prijzen",
-            "/kas/mcp": "Restaurant de Kas — menu, openingstijden, reservering",
-            "/kitlv/mcp": "KITLV — evenementen, onderzoekers, projecten, nieuws",
-        }
-    })
+# --- Shopify tools ---
+
+@mcp.tool()
+def shopify_list_products() -> str:
+    """Geeft een overzicht van alle producten in de Shopify winkel met prijs en beschikbaarheid."""
+    return _shopify.list_products()
+
+@mcp.tool()
+def shopify_check_product(query: str) -> str:
+    """Zoekt een Shopify product op naam. Geeft prijs, varianten, voorraad, beschrijving en afbeelding terug."""
+    return _shopify.check_product(query)
+
+@mcp.tool()
+def shopify_search_products(query: str = "", available_only: bool = False,
+                             min_price: float = 0.0, max_price: float = 999999.0,
+                             sort_by: str = "name") -> str:
+    """Zoek Shopify producten met filters op prijs, beschikbaarheid en sortering."""
+    return _shopify.search_products(query, available_only, min_price, max_price, sort_by)
 
 
-app = Starlette(routes=[
-    Mount("/shopify", app=shopify_asgi),
-    Mount("/kas", app=kas_asgi),
-    Mount("/kitlv", app=kitlv_asgi),
-])
+# --- Restaurant de Kas tools ---
 
-# Voeg index-route toe
-from starlette.routing import Route
-app.routes.insert(0, Route("/", index))
+@mcp.tool()
+def kas_get_menu() -> str:
+    """Geeft het lunch- en dinermenu van Restaurant de Kas met prijzen en dieetwensen."""
+    return _kas.get_menu()
+
+@mcp.tool()
+def kas_get_info() -> str:
+    """Geeft adres, openingstijden, telefoon en parkeerinformatie van Restaurant de Kas."""
+    return _kas.get_info()
+
+@mcp.tool()
+def kas_check_availability(party_size: int, meal_type: str = "diner") -> str:
+    """Geeft reserveringsinformatie voor Restaurant de Kas inclusief totaalprijs per gezelschap."""
+    return _kas.check_availability(party_size, meal_type)
+
+
+# --- KITLV tools ---
+
+@mcp.tool()
+def kitlv_get_events() -> str:
+    """Geeft aankomende evenementen van KITLV met datum en locatie."""
+    return _kitlv.get_events()
+
+@mcp.tool()
+def kitlv_search_events(query: str) -> str:
+    """Zoek KITLV evenementen op trefwoord zoals 'Caribbean' of 'klimaat'."""
+    return _kitlv.search_events(query)
+
+@mcp.tool()
+def kitlv_search_projects(query: str = "") -> str:
+    """Zoek KITLV onderzoeksprojecten op trefwoord. Leeg = alle projecten."""
+    return _kitlv.search_projects(query)
+
+@mcp.tool()
+def kitlv_get_info() -> str:
+    """Geeft algemene informatie over KITLV: missie, onderzoeksgebieden en contactinfo."""
+    return _kitlv.get_info()
+
+@mcp.tool()
+def kitlv_list_staff(role: str = "") -> str:
+    """Geeft een lijst van KITLV-medewerkers. Filter op rol: 'senior', 'phd', 'postdoc'."""
+    return _kitlv.list_staff(role)
+
+@mcp.tool()
+def kitlv_get_researcher(name: str) -> str:
+    """Zoek een KITLV-onderzoeker op naam en geef profiel, projecten en publicaties terug."""
+    return _kitlv.get_researcher(name)
+
+@mcp.tool()
+def kitlv_get_news(query: str = "") -> str:
+    """Geeft recent nieuws van KITLV. Optioneel gefilterd op trefwoord."""
+    return _kitlv.get_news(query)
 
 
 if __name__ == "__main__":
-    import uvicorn
-    print(f"Server draait op http://{HOST}:{PORT}")
-    print(f"  Shopify: http://localhost:{PORT}/shopify/mcp")
-    print(f"  Kas:     http://localhost:{PORT}/kas/mcp")
-    print(f"  KITLV:   http://localhost:{PORT}/kitlv/mcp")
-    uvicorn.run(app, host=HOST, port=PORT)
+    print(f"Server draait op http://0.0.0.0:{PORT}/mcp")
+    mcp.run(transport="streamable-http")
