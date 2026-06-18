@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(~/.local/bin/uv run *)",
+      "Bash(cat ~/.claude/claude_desktop_config.json 2>/dev/null || echo \"NIET GEVONDEN\")",
+      "mcp__shopify-store__check_product",
+      "mcp__shopify-store__search_products",
+      "WebFetch(domain:restaurantdekas.com)",
+      "mcp__restaurant-de-kas__get_menu",
+      "WebFetch(domain:www.kitlv.nl)",
+      "mcp__kitlv__search_projects",
+      "mcp__kitlv__get_researcher",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp cd \"/Users/KasBerenschot/Documents/claude code\")"
+    ]
+  }
+}
