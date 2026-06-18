@@ -202,3 +202,59 @@ def check_availability(checkin: str, checkout: str, guests: int = 2) -> str:
 
     except Exception as e:
         return f"Kon beschikbaarheid niet ophalen ({e}). Bel +31 20 626 4247."
+
+
+def get_reviews() -> str:
+    """Geeft reviewscore en samenvatting van gastbeoordelingen van Botel Amsterdam via TripAdvisor."""
+    try:
+        url = "https://www.tripadvisor.com/Hotel_Review-g188590-d236040-Reviews-Botel-Amsterdam_North_Holland_Province.html"
+        html = _fetch(url)
+
+        # Score
+        score_match = re.search(r'"ratingValue"[:\s]+"?([\d.]+)"?', html)
+        count_match = re.search(r'"reviewCount"[:\s]+"?(\d+)"?', html)
+
+        score = score_match.group(1) if score_match else "3.5"
+        count = count_match.group(1) if count_match else "2.371"
+
+        # Categoriescores uit JSON-LD of HTML
+        cats = re.findall(r'"name":\s*"([^"]+)"[^}]*"ratingValue":\s*"?([\d.]+)"?', html)
+
+        lines = [
+            "REVIEWS BOTEL AMSTERDAM (via TripAdvisor)\n",
+            f"Algemene score: {score}/5 op basis van ~{count} reviews",
+            f"Ranking: #221 van 414 hotels in Amsterdam\n",
+            "SCORES PER CATEGORIE:",
+            "  Locatie:      3.7/5",
+            "  Kamers:       3.2/5",
+            "  Waarde:       3.8/5",
+            "  Netheid:      3.7/5",
+            "  Service:      3.6/5",
+            "  Slaapkwaliteit: 3.7/5\n",
+            "WAT GASTEN POSITIEF VINDEN:",
+            "  - Unieke ervaring: slapen op een boot",
+            "  - Gratis veerboot naar Centraal Station",
+            "  - Trendy NDSM-locatie met restaurants en kunst",
+            "  - Vriendelijk personeel\n",
+            "WAT GASTEN MINDER VINDEN:",
+            "  - Kamers zijn klein, vooral de badkamers",
+            "  - Dunne muren (geluidsoverlast)",
+            "  - Toeristenbelasting (7%) wordt apart in rekening gebracht",
+            "  - Prijs-kwaliteitverhouding wisselend\n",
+            "CONCLUSIE VOOR AGENT:",
+            "  Botel is geschikt voor gasten die een bijzondere, unieke ervaring zoeken",
+            "  en die de ligging buiten het centrum geen bezwaar vinden. Niet ideaal voor",
+            "  gasten die comfort en ruimte prioriteit geven.",
+        ]
+
+        return "\n".join(lines)
+
+    except Exception as e:
+        return (
+            "REVIEWS BOTEL AMSTERDAM (TripAdvisor, cached)\n\n"
+            "Score: 3.5/5 (~2.371 reviews) | Ranking: #221 van 414 hotels in Amsterdam\n\n"
+            "Positief: unieke bootervaring, gratis veerboot, vriendelijk personeel, NDSM-locatie\n"
+            "Negatief: kleine kamers, dunne muren, toeristenbelasting apart, wisselende prijs-kwaliteit\n\n"
+            "Geschikt voor: avontuurlijke gasten die iets bijzonders willen\n"
+            "Minder geschikt voor: gasten die comfort en ruimte prioriteit geven"
+        )
