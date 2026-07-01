@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiteLayer — Make your website AI-readable</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #ffffff;
+      --gray: #888;
+      --light: #f5f5f5;
+      --accent: #5b4fff;
+      --accent-light: #ede9ff;
+      --border: #e5e5e5;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--white);
+      color: var(--black);
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-weight: 700; font-size: 18px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    nav a {
+      text-decoration: none;
+      color: var(--black);
+      font-size: 14px;
+      font-weight: 500;
+      background: var(--black);
+      color: var(--white);
+      padding: 8px 18px;
+      border-radius: 8px;
+    }
+
+    /* HERO */
+    .hero {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 100px 40px 80px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: clamp(36px, 6vw, 60px);
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    h1 em { color: var(--accent); font-style: normal; }
+    .hero p {
+      font-size: 18px;
+      color: var(--gray);
+      max-width: 520px;
+      margin: 0 auto 40px;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--white);
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      background: var(--light);
+      color: var(--black);
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* DEMO */
+    .demo-section {
+      background: var(--black);
+      padding: 80px 40px;
+    }
+    .demo-inner {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .demo-section h2 {
+      color: var(--white);
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+    .demo-section p {
+      color: var(--gray);
+      margin-bottom: 32px;
+      font-size: 16px;
+    }
+    .demo-box {
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .demo-tabs {
+      display: flex;
+      border-bottom: 1px solid #2a2a2a;
+      padding: 0 16px;
+      gap: 4px;
+    }
+    .demo-tab {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--gray);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      font-family: inherit;
+      transition: color 0.15s;
+    }
+    .demo-tab.active {
+      color: var(--white);
+      border-bottom-color: var(--accent);
+    }
+    .demo-input-area {
+      padding: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .demo-input {
+      flex: 1;
+      background: #1f1f1f;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--white);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+    .demo-input:focus { border-color: var(--accent); }
+    .demo-input::placeholder { color: #555; }
+    .demo-submit {
+      background: var(--accent);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .demo-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .demo-result {
+      margin: 0 20px 20px;
+      background: #0f0f0f;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 80px;
+      display: none;
+    }
+    .demo-result.visible { display: block; }
+    .demo-result .label {
+      font-size: 11px;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .demo-result pre {
+      color: #a8ff78;
+      font-size: 13px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.6;
+    }
+    .demo-result .loading {
+      color: #555;
+      font-size: 13px;
+      font-family: monospace;
+    }
+    .demo-result .error { color: #ff6b6b; font-size: 13px; font-family: monospace; }
+
+    /* HOW IT WORKS */
+    .how {
+      padding: 80px 40px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .how h2 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 48px;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 32px;
+    }
+    .step { }
+    .step-num {
+      width: 36px;
+      height: 36px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .step h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 14px; color: var(--gray); line-height: 1.6; }
+    .code-block {
+      background: var(--black);
+      color: #a8ff78;
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    /* WHY */
+    .why {
+      background: var(--light);
+      padding: 80px 40px;
+    }
+    .why-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .why h2 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 48px;
+    }
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } }
+    .compare-box {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 28px;
+      border: 1px solid var(--border);
+    }
+    .compare-box.bad { border-color: #ffd0d0; }
+    .compare-box.good { border-color: #d0ffd9; }
+    .compare-box h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+    .compare-box h3 .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+      font-weight: 600;
+    }
+    .bad .tag { background: #ffe0e0; color: #cc0000; }
+    .good .tag { background: #e0ffe6; color: #007a1f; }
+    .compare-box ul { list-style: none; }
+    .compare-box li { font-size: 14px; color: var(--gray); padding: 6px 0; display: flex; gap: 8px; }
+    .compare-box li::before { flex-shrink: 0; }
+    .bad li::before { content: "✕"; color: #cc0000; }
+    .good li::before { content: "✓"; color: #007a1f; }
+
+    /* CTA */
+    .cta {
+      padding: 100px 40px;
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .cta h2 { font-size: 40px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 16px; }
+    .cta p { color: var(--gray); font-size: 17px; margin-bottom: 36px; }
+    .cta-form { display: flex; gap: 10px; max-width: 440px; margin: 0 auto; }
+    .cta-input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+    }
+    .cta-input:focus { border-color: var(--accent); }
+    .cta-confirm { display: none; color: var(--accent); font-weight: 600; margin-top: 12px; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--gray);
+    }
+    footer a { color: var(--gray); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Site<span>Layer</span></div>
+  <a href="#contact">Get early access</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">MCP · AI-ready websites</div>
+  <h1>Make your website<br>readable by <em>AI agents</em></h1>
+  <p>Add one line of code to your site. AI agents instantly find and query your content — no scraping, no guessing.</p>
+  <div class="hero-cta">
+    <a href="#demo" class="btn-primary">Try live demo</a>
+    <a href="#how" class="btn-secondary">How it works</a>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="demo-section" id="demo">
+  <div class="demo-inner">
+    <h2>See it in action</h2>
+    <p>Ask anything about these live sites — powered by SiteLayer MCP servers.</p>
+    <div class="demo-box">
+      <div class="demo-tabs">
+        <button class="demo-tab active" data-site="botel">🚢 Botel Amsterdam</button>
+        <button class="demo-tab" data-site="eye">🎬 Eye Filmmuseum</button>
+        <button class="demo-tab" data-site="kas">🌿 Restaurant de Kas</button>
+      </div>
+      <div class="demo-input-area">
+        <input class="demo-input" id="demoQuestion" type="text" placeholder="e.g. What rooms are available next week?" />
+        <button class="demo-submit" id="demoBtn" onclick="askDemo()">Ask →</button>
+      </div>
+      <div class="demo-result" id="demoResult">
+        <div class="label">Response</div>
+        <pre id="demoOutput"></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="section-label">How it works</div>
+  <h2>Three steps to AI-ready</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>We build your MCP server</h3>
+      <p>We analyze your website and build a server that exposes your content — prices, availability, menus, events — as structured tools.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Add one meta-tag</h3>
+      <p>Drop a single line into your site's HTML. Any AI agent with a discovery tool will find your server automatically.</p>
+      <div class="code-block">&lt;meta name="mcp-server"<br>&nbsp;&nbsp;content="https://your-server/mcp"&gt;</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>AI agents find you</h3>
+      <p>When someone asks an AI about your business, it queries your server directly — getting accurate, real-time answers instead of outdated scraped content.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="why">
+  <div class="why-inner">
+    <div class="section-label">Why it matters</div>
+    <h2>The web is changing</h2>
+    <div class="compare">
+      <div class="compare-box bad">
+        <h3>Without SiteLayer <span class="tag">Today</span></h3>
+        <ul>
+          <li>AI scrapes your HTML and guesses</li>
+          <li>Outdated, incomplete answers</li>
+          <li>50,000+ tokens per query</li>
+          <li>No control over what AI says about you</li>
+          <li>Invisible to AI agents</li>
+        </ul>
+      </div>
+      <div class="compare-box good">
+        <h3>With SiteLayer <span class="tag">AI-ready</span></h3>
+        <ul>
+          <li>AI queries your server directly</li>
+          <li>Live, accurate data every time</li>
+          <li>~500 tokens per query</li>
+          <li>You control what agents see</li>
+          <li>Discoverable by any AI agent</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="contact">
+  <h2>Get early access</h2>
+  <p>We're onboarding the first businesses now. Leave your email and we'll be in touch.</p>
+  <div class="cta-form">
+    <input class="cta-input" id="ctaEmail" type="email" placeholder="your@email.com" />
+    <button class="btn-primary" onclick="submitEmail()">Join waitlist</button>
+  </div>
+  <div class="cta-confirm" id="ctaConfirm">✓ You're on the list — we'll reach out soon.</div>
+</section>
+
+<footer>
+  <div class="logo" style="font-size:14px">Site<span style="color:#5b4fff">Layer</span></div>
+  <span>Making the web readable for AI agents.</span>
+  <a href="mailto:hello@sitelayer.dev">hello@sitelayer.dev</a>
+</footer>
+
+<script>
+  const API = "https://ai-site-layer-production.up.railway.app";
+  let currentSite = "botel";
+
+  const suggestions = {
+    botel: [
+      "What rooms are available this weekend?",
+      "How much does a Loft suite cost?",
+      "How do I get to Botel from Central Station?",
+    ],
+    eye: [
+      "What films are showing today?",
+      "What exhibitions are on right now?",
+      "What time does the restaurant open?",
+    ],
+    kas: [
+      "What does a 3-course dinner cost?",
+      "Do you have vegan options?",
+      "Where is Restaurant de Kas located?",
+    ]
+  };
+
+  // Tab switching
+  document.querySelectorAll(".demo-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".demo-tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      currentSite = tab.dataset.site;
+      const s = suggestions[currentSite];
+      document.getElementById("demoQuestion").placeholder = s[Math.floor(Math.random() * s.length)];
+      document.getElementById("demoResult").classList.remove("visible");
+    });
+  });
+
+  async function askDemo() {
+    const question = document.getElementById("demoQuestion").value.trim();
+    if (!question) return;
+
+    const btn = document.getElementById("demoBtn");
+    const result = document.getElementById("demoResult");
+    const output = document.getElementById("demoOutput");
+
+    btn.disabled = true;
+    btn.textContent = "...";
+    result.classList.add("visible");
+    output.className = "loading";
+    output.textContent = "Querying SiteLayer server...";
+
+    try {
+      const res = await fetch(`${API}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ site: currentSite, question })
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        output.className = "error";
+        output.textContent = "Error: " + data.error;
+      } else {
+        output.className = "";
+        output.textContent = data.result;
+      }
+    } catch (e) {
+      output.className = "error";
+      output.textContent = "Could not reach server. Please try again.";
+    }
+
+    btn.disabled = false;
+    btn.textContent = "Ask →";
+  }
+
+  document.getElementById("demoQuestion").addEventListener("keydown", e => {
+    if (e.key === "Enter") askDemo();
+  });
+
+  function submitEmail() {
+    const email = document.getElementById("ctaEmail").value.trim();
+    if (!email || !email.includes("@")) return;
+    document.getElementById("ctaConfirm").style.display = "block";
+    document.getElementById("ctaEmail").value = "";
+  }
+</script>
+
+</body>
+</html>
